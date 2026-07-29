@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About — Ethan Sie</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="masthead">
+    <div class="wrap">
+      <div id="brand"></div>
+      <nav class="nav" id="nav"></nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="about">
+      <h1>About</h1>
+      <p>
+        I'm a mechanical engineering and eecs student at the University of California, Berkeley.
+      </p>
+      <p>
+        This is a running catalog of the things I've designed and built, from
+        machined parts to software. Each entry lists what
+        it is, how it works, and where to find the source or files.
+      </p>
+      <p>
+        The fastest way to reach me is email. I'm always happy to talk about a
+        project in more detail.
+      </p>
+
+      <ul class="contact-list">
+        <li><span class="k">Email</span><a id="c-email" href="#"></a></li>
+        <li><span class="k">GitHub</span><a id="c-github" href="#"></a></li>
+        <li><span class="k">LinkedIn</span><a id="c-linkedin" href="#"></a></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap" id="footer"></div>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById("c-email").textContent = PROFILE.email;
+    document.getElementById("c-email").href = "mailto:" + PROFILE.email;
+    const gh = document.getElementById("c-github");
+    gh.textContent = PROFILE.github.replace(/^https?:\/\//, ""); gh.href = PROFILE.github;
+    const li = document.getElementById("c-linkedin");
+    li.textContent = PROFILE.linkedin.replace(/^https?:\/\//, ""); li.href = PROFILE.linkedin;
+  </script>
+</body>
+</html>
