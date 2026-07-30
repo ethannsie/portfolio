@@ -74,10 +74,28 @@ function renderGrid() {
   const present = DISCIPLINES.filter(d => PROJECTS.some(p => p.tags.includes(d)));
   const options = ["all", ...present];
   let active = "all";
+  let query = "";
 
-  filterBar.innerHTML = options.map(o =>
-    `<button class="filter" data-f="${o}" aria-pressed="${o === "all"}">${o}</button>`
-  ).join("");
+  // flatten each project's key info (title, blurb, tags, year, overview,
+  // specs, links) into one lowercase blob so search can match any of it
+  const searchIndex = new Map(PROJECTS.map(p => {
+    const d = p.detail || {};
+    const text = [
+      p.title, p.blurb, p.year, ...p.tags,
+      ...(d.overview || []),
+      ...(d.specs || []).flat(),
+      ...(d.links || []).map(l => l.label),
+    ].join(" ").toLowerCase();
+    return [p.slug, text];
+  }));
+
+  filterBar.innerHTML = `
+    <label class="search-box">
+      <i class="ti ti-search"></i>
+      <input type="search" id="project-search" placeholder="Search projects…" aria-label="Search projects" autocomplete="off">
+    </label>
+    ${options.map(o => `<button class="filter" data-f="${o}" aria-pressed="${o === "all"}">${o}</button>`).join("")}
+  `;
 
   function card(p, i) {
     return `
@@ -97,11 +115,12 @@ function renderGrid() {
   }
 
   function draw() {
-    const list = active === "all" ? PROJECTS : PROJECTS.filter(p => p.tags.includes(active));
+    let list = active === "all" ? PROJECTS : PROJECTS.filter(p => p.tags.includes(active));
+    if (query) list = list.filter(p => searchIndex.get(p.slug).includes(query));
     grid.innerHTML = list.length
       ? list.map(card).join("")
-      : `<p class="empty">No projects tagged “${esc(active)}” yet.</p>`;
-    if (countEl) countEl.textContent = String(PROJECTS.length).padStart(2, "0");
+      : `<p class="empty">${query ? `No projects match “${esc(query)}”.` : `No projects tagged “${esc(active)}” yet.`}</p>`;
+    if (countEl) countEl.textContent = String(list.length).padStart(2, "0");
   }
 
   filterBar.addEventListener("click", (e) => {
@@ -110,6 +129,11 @@ function renderGrid() {
     active = btn.dataset.f;
     filterBar.querySelectorAll(".filter").forEach(b =>
       b.setAttribute("aria-pressed", String(b.dataset.f === active)));
+    draw();
+  });
+
+  filterBar.querySelector("#project-search").addEventListener("input", (e) => {
+    query = e.target.value.trim().toLowerCase();
     draw();
   });
 
