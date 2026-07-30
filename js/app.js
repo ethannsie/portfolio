@@ -64,17 +64,16 @@ function renderGrid() {
 
   function card(p) {
     return `
-      <a class="card" href="project.html?p=${encodeURIComponent(p.slug)}">
+      <a class="card" href="project.html?p=${encodeURIComponent(p.slug)}" data-slug="${esc(p.slug)}">
         <img class="thumb" src="${esc(p.thumb)}" alt="${esc(p.title)}" loading="lazy">
         <div class="card-body">
           <div class="card-meta mono">
-            <span class="card-id">${esc(p.id)}</span>
             <span>${esc(p.year)}</span>
           </div>
           <h2 class="card-title">${esc(p.title)}</h2>
           <p class="card-blurb">${esc(p.blurb)}</p>
           <div class="tags">
-            ${p.tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}
+            ${p.tags.map(t => `<span class="tag tag-${esc(t)}">${esc(t)}</span>`).join("")}
           </div>
         </div>
       </a>`;
@@ -115,6 +114,7 @@ function renderDetail() {
 
   document.title = `${p.title} — ${PROFILE.name}`;
   const d = p.detail || {};
+  const isPreview = new URLSearchParams(location.search).get("preview") === "1";
 
   const heroSrc = (d.gallery && d.gallery[0]) || p.thumb;
   const hero = `<figure class="hero-figure"><button type="button" class="zoomable"><img src="${esc(heroSrc)}" alt="${esc(p.title)}"></button></figure>`;
@@ -157,11 +157,11 @@ function renderDetail() {
       </div>`
     : "";
 
-  const embed = d.embed
+  const embed = d.embed && !isPreview
     ? `<div class="prose-block embed-section"><h3>${esc(d.embed.label || "Interactive demo")}</h3><div class="embed-frame" style="height:${esc(d.embed.height || 950)}px"><iframe src="${esc(d.embed.url)}" loading="lazy" allowfullscreen></iframe></div></div>`
     : "";
 
-  const cadFiles = Array.isArray(d.cad) ? d.cad : (d.cad ? [d.cad] : []);
+  const cadFiles = isPreview ? [] : (Array.isArray(d.cad) ? d.cad : (d.cad ? [d.cad] : []));
   const cad = cadFiles.length
     ? `<div class="prose-block cad-block" style="display:none">
         <h3>CAD — exploded view <span class="cad-count mono" hidden></span></h3>
@@ -176,11 +176,10 @@ function renderDetail() {
   root.innerHTML = `
     <a class="back" href="index.html"><i class="ti ti-arrow-left"></i> all work</a>
     <div class="detail-head">
-      <div class="detail-id mono">${esc(p.id)}</div>
       <h1 class="detail-title">${esc(p.title)}</h1>
       <div class="detail-tags">
         <span class="detail-year mono">${esc(p.year)}</span>
-        ${p.tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}
+        ${p.tags.map(t => `<span class="tag tag-${esc(t)}">${esc(t)}</span>`).join("")}
       </div>
     </div>
     ${hero}
@@ -249,9 +248,77 @@ function initLightbox() {
   });
 }
 
+/* ---------- hover preview of a project's page, on the home grid ----------
+   Loads the real project page in a scaled-down iframe (with ?preview=1,
+   which tells renderDetail to skip mounting the CAD viewer / embed so a
+   quick hover doesn't trigger a full WASM/three.js load). Only wired up
+   on devices that have real hover (skips touch entirely). */
+function initCardPreview() {
+  if (!window.matchMedia("(hover: hover)").matches) return;
+
+  const FRAME_W = 1280, FRAME_H = 900, PANEL_W = 340, PANEL_H = 239;
+  const SCALE = PANEL_W / FRAME_W;
+
+  let panel, iframe, showTimer, hideTimer, activeSlug;
+
+  function ensurePanel() {
+    if (panel) return;
+    panel = document.createElement("div");
+    panel.className = "card-preview";
+    panel.innerHTML = `<iframe tabindex="-1" aria-hidden="true"></iframe>`;
+    document.body.appendChild(panel);
+    iframe = panel.querySelector("iframe");
+    iframe.style.width = `${FRAME_W}px`;
+    iframe.style.height = `${FRAME_H}px`;
+    iframe.style.transform = `scale(${SCALE})`;
+  }
+
+  function position(cardEl) {
+    const rect = cardEl.getBoundingClientRect();
+    let left = rect.right + 16;
+    if (left + PANEL_W > window.innerWidth - 12) left = rect.left - PANEL_W - 16;
+    left = Math.min(Math.max(left, 12), window.innerWidth - PANEL_W - 12);
+    const top = Math.min(Math.max(rect.top, 12), window.innerHeight - PANEL_H - 12);
+    panel.style.left = `${left}px`;
+    panel.style.top = `${top}px`;
+  }
+
+  function show(cardEl, slug) {
+    ensurePanel();
+    if (activeSlug !== slug) {
+      activeSlug = slug;
+      iframe.src = `project.html?p=${encodeURIComponent(slug)}&preview=1`;
+    }
+    position(cardEl);
+    panel.classList.add("is-visible");
+  }
+
+  function hide() {
+    if (panel) panel.classList.remove("is-visible");
+  }
+
+  document.addEventListener("pointerover", (e) => {
+    const card = e.target.closest(".card");
+    if (!card || !card.dataset.slug) return;
+    clearTimeout(hideTimer);
+    clearTimeout(showTimer);
+    showTimer = setTimeout(() => show(card, card.dataset.slug), 350);
+  });
+
+  document.addEventListener("pointerout", (e) => {
+    const card = e.target.closest(".card");
+    if (!card || card.contains(e.relatedTarget)) return;
+    clearTimeout(showTimer);
+    hideTimer = setTimeout(hide, 80);
+  });
+
+  window.addEventListener("scroll", hide, { passive: true, capture: true });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   renderChrome();
   renderGrid();
   renderDetail();
   initLightbox();
+  initCardPreview();
 });

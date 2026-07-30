@@ -16,6 +16,5 @@
     <circle cx="334" cy="169" r="11"/>
     <circle cx="354" cy="187" r="10"/>
   </g>
-  <text x="28" y="44" font-family="'IBM Plex Mono',monospace" font-size="17" fill="#1F3A5F" letter-spacing="1">MATH·01</text>
   <rect x="1" y="1" width="638" height="398" fill="none" stroke="#cfd6cf" stroke-width="2"/>
 </svg>
