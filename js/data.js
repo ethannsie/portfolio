@@ -168,7 +168,10 @@ const PROJECTS = [
         ["Key result", "29.2% of U.S. households ready for a cat; 95.3% cat retention vs. 88.8% dog retention"]
       ],
       gallery: [
-        "assets/img/immc-2024-retention-charts.png"
+        "assets/img/immc-2024-retention-charts.png",
+        "assets/img/immc-2024-hrsplit.png",
+        "assets/img/immc-2024-decision-tree.png",
+        "assets/img/immc-2024-interface.png"
       ],
       links: [
         { label: "Read the paper", url: "assets/papers/immc-2024-picking-the-perfect-pet.pdf" }
@@ -198,7 +201,10 @@ const PROJECTS = [
         ["Recognition", "Finalist, 2025 IM²C USA Regional Contest"]
       ],
       gallery: [
-        "assets/img/immc-2025-infographic.png"
+        "assets/img/immc-2025-infographic.png",
+        "assets/img/immc-2025-ceeg.png",
+        "assets/img/immc-2025-tournament-structure.png",
+        "assets/img/immc-2025-teams-table.png"
       ],
       links: [
         { label: "Read the paper", url: "assets/papers/immc-2025-global-sports-league.pdf" }
@@ -261,7 +267,8 @@ const PROJECTS = [
       ],
       gallery: [
         "assets/img/mcm-2025-fig1-regression.png",
-        "assets/img/mcm-2025-fig2-dbscan.png"
+        "assets/img/mcm-2025-fig2-dbscan.png",
+        "assets/img/mcm-2025-fig3-distribution.png"
       ],
       links: [
         { label: "Read the paper", url: "assets/papers/mcm-2025-olympic-medal-tables.pdf" }
