@@ -1,6 +1,6 @@
 /* ============================================================
    PORTFOLIO — engineering drawing set
-   Type:  IBM Plex Sans (body) / IBM Plex Mono (technical data)
+   Type:  Space Grotesk (body) / JetBrains Mono (technical data)
    ============================================================ */
 
 :root {
@@ -46,7 +46,7 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-family: "Space Grotesk", system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
@@ -57,7 +57,7 @@ a { color: var(--blue-bright); text-decoration: none; }
 a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 .mono {
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
   font-feature-settings: "zero" 1;
 }
 
@@ -104,7 +104,7 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
   margin: 22px 0 30px;
 }
 .filter {
-  font-family: "IBM Plex Mono", monospace;
+  font-family: "JetBrains Mono", monospace;
   font-size: 12px; letter-spacing: .02em;
   padding: 6px 14px;
   border: 1px solid var(--line-strong);
@@ -169,7 +169,7 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
 .tag {
-  font-family: "IBM Plex Mono", monospace;
+  font-family: "JetBrains Mono", monospace;
   font-size: 10.5px; letter-spacing: .02em;
   padding: 3px 9px; border-radius: 5px;
   background: var(--tag-bg); color: var(--tag-ink);
@@ -215,7 +215,7 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .specs tr:last-child { border-bottom: 0; }
 .specs td { padding: 9px 0; vertical-align: top; }
 .specs td:first-child { color: var(--muted); padding-right: 16px; white-space: nowrap; }
-.specs td:last-child { text-align: right; font-family: "IBM Plex Mono", monospace; font-size: 12.5px; }
+.specs td:last-child { text-align: right; font-family: "JetBrains Mono", monospace; font-size: 12.5px; }
 
 .links { display: flex; flex-direction: column; gap: 9px; margin-top: 6px; }
 .link-btn {
@@ -381,7 +381,7 @@ html.lightbox-lock, html.lightbox-lock body { overflow: hidden; }
 .cad-bom tr { border-bottom: 1px solid var(--line); transition: background .1s var(--ease); }
 .cad-bom tr:last-child { border-bottom: 0; }
 .cad-bom td { padding: 7px 0; }
-.cad-bom td:last-child { text-align: right; font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--muted); }
+.cad-bom td:last-child { text-align: right; font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--muted); }
 .cad-bom tr.is-hovered { background: var(--tag-bg); }
 .cad-bom tr.is-hovered td:first-child { color: var(--tag-ink); }
 .cad-download { margin-top: auto; font-size: 12.5px; }
@@ -409,7 +409,7 @@ html.lightbox-lock, html.lightbox-lock body { overflow: hidden; }
 .about p { color: var(--ink); margin: 0 0 18px; }
 .about .contact-list { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 10px; font-size: 14px; }
 .about .contact-list li { display: flex; gap: 12px; align-items: baseline; }
-.about .contact-list .k { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); min-width: 92px; }
+.about .contact-list .k { font-family: "JetBrains Mono", monospace; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); min-width: 92px; }
 
 /* ---- motion / a11y ---- */
 :focus-visible { outline: 2px solid var(--blue-bright); outline-offset: 2px; border-radius: 3px; }
