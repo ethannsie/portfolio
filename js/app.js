@@ -114,9 +114,10 @@ function renderGrid() {
       </a>`;
   }
 
-  function draw() {
+  function draw(animate = true) {
     let list = active === "all" ? PROJECTS : PROJECTS.filter(p => p.tags.includes(active));
     if (query) list = list.filter(p => searchIndex.get(p.slug).includes(query));
+    grid.classList.toggle("no-anim", !animate);
     grid.innerHTML = list.length
       ? list.map(card).join("")
       : `<p class="empty">${query ? `No projects match “${esc(query)}”.` : `No projects tagged “${esc(active)}” yet.`}</p>`;
@@ -134,7 +135,7 @@ function renderGrid() {
 
   filterBar.querySelector("#project-search").addEventListener("input", (e) => {
     query = e.target.value.trim().toLowerCase();
-    draw();
+    draw(false);
   });
 
   draw();
