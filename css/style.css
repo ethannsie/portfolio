@@ -379,7 +379,7 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 /* the gallery doubles as the page's hero visual — it's the first
    thing on a project page, so give it more room than a secondary
    gallery/media strip elsewhere and drop the stacked-section margin */
-.hero-gallery { margin-top: 26px; }
+.hero-gallery { margin: 26px 0 48px; }
 .hero-gallery .gallery img { height: 420px; }
 
 /* ---- shared click-to-enlarge trigger (gallery / media images) ---- */
