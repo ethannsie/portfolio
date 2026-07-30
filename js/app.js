@@ -159,9 +159,6 @@ function renderDetail() {
   root.classList.toggle("detail--eecs", p.tags.some(t => ["electronics", "firmware", "software"].includes(t)));
   const isPreview = new URLSearchParams(location.search).get("preview") === "1";
 
-  const heroSrc = (d.gallery && d.gallery[0]) || p.thumb;
-  const hero = `<figure class="hero-figure"><button type="button" class="zoomable"><img src="${esc(heroSrc)}" alt="${esc(p.title)}"></button></figure>`;
-
   const overview = (d.overview || []).length
     ? `<div class="prose-block"><h3>Overview</h3><div class="prose">${d.overview.map(t => `<p>${esc(t)}</p>`).join("")}</div></div>`
     : `<div class="prose-block"><div class="prose"><p>${esc(p.blurb)}</p></div></div>`;
@@ -177,10 +174,9 @@ function renderDetail() {
       ).join("")}</div></div>`
     : "";
 
-  const gallery = (d.gallery || []).length > 1
-    ? `<div class="prose-block gallery-section">
-        <h3>Gallery</h3>
-        <div class="gallery" role="region" aria-label="Project gallery, scroll for more" tabindex="0">${d.gallery.slice(1).map(src =>
+  const gallery = (d.gallery || []).length
+    ? `<div class="prose-block hero-gallery">
+        <div class="gallery" role="region" aria-label="Project gallery, scroll for more" tabindex="0">${d.gallery.map(src =>
           `<button type="button" class="zoomable"><img src="${esc(src)}" alt="${esc(p.title)}" loading="lazy"></button>`).join("")}</div>
       </div>`
     : "";
@@ -225,15 +221,14 @@ function renderDetail() {
         ${p.tags.map(t => `<span class="tag tag-${esc(t)}">${esc(t)}</span>`).join("")}
       </div>
     </div>
-    ${hero}
+    ${gallery}
     <div class="detail-cols">
       <div>${overview}</div>
       <aside class="side">${specs}${specs && links ? '<div style="height:32px"></div>' : ''}${links}</aside>
     </div>
     ${embed}
     ${media}
-    ${cad}
-    ${gallery}`;
+    ${cad}`;
 
   if (cadFiles.length && window.CadViewer) {
     window.CadViewer.mount(document.getElementById("cad-strip"), cadFiles, d.specs);

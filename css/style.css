@@ -333,7 +333,7 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* ---- stacked full-width sections below the two-column layout —
    consistent breathing room between each one ---- */
-.embed-section, .media-section, .gallery-section, .cad-block {
+.embed-section, .media-section, .cad-block {
   margin-top: 56px;
   position: relative;
 }
@@ -343,7 +343,6 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
    leaving it bare */
 .detail--eecs .embed-section::before,
 .detail--eecs .media-section::before,
-.detail--eecs .gallery-section::before,
 .detail--eecs .cad-block::before {
   content: "";
   position: absolute; top: -33px; left: 50%; transform: translateX(-50%);
@@ -377,18 +376,16 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .media-item { margin: 0; }
 .media-item figcaption { margin-top: 7px; font-size: 12px; color: var(--muted); max-width: 80vw; }
 
-.hero-figure {
-  margin: 0 0 40px; max-height: 320px; overflow: hidden;
-  border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel);
-  display: flex; align-items: center; justify-content: center;
-}
-.hero-figure img { width: 100%; height: 320px; object-fit: contain; display: block; }
+/* the gallery doubles as the page's hero visual — it's the first
+   thing on a project page, so give it more room than a secondary
+   gallery/media strip elsewhere and drop the stacked-section margin */
+.hero-gallery { margin-top: 26px; }
+.hero-gallery .gallery img { height: 420px; }
 
-/* ---- shared click-to-enlarge trigger (hero / gallery / media images) ---- */
+/* ---- shared click-to-enlarge trigger (gallery / media images) ---- */
 .zoomable {
   all: unset; display: block; cursor: zoom-in; border-radius: inherit;
 }
-.hero-figure .zoomable { width: 100%; height: 100%; }
 .zoomable img { transition: opacity .15s var(--ease); }
 .zoomable:hover img { opacity: .9; }
 .zoomable:focus-visible { outline: 2px solid var(--blue-bright); outline-offset: 2px; }
