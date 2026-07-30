@@ -62,7 +62,7 @@ const PROJECTS = [
     year: "2025",
     blurb: "Low-level SPICE-style solver for arbitrary resistor/EMF circuit networks.",
     tags: ["software"],
-    thumb: "assets/img/circuit-solver.svg",
+    thumb: "assets/img/circuit-solver-sim.png",
     icon: "ti-circuit-resistor",
     detail: {
       overview: [
@@ -75,6 +75,7 @@ const PROJECTS = [
         ["Output", "Current and voltage per wire"],
         ["Configurable", "Resistor values, EMF values, circuit topology"]
       ],
+      gallery: ["assets/img/circuit-solver-sim.png"],
       embed: {
         url: "https://www.glowscript.org/#/user/sie.ethan/folder/MyPrograms/program/circuitBuilder",
         label: "Live simulation"
@@ -88,7 +89,7 @@ const PROJECTS = [
     year: "2026",
     blurb: "Camera-free driver-coaching wearable built in 36 hours at Purdue's StarkHacks, using dual ESP32-S3 IMUs and real-time audio feedback.",
     tags: ["firmware", "software"],
-    thumb: "assets/img/driver-monitor.svg",
+    thumb: "assets/img/driver-monitor-demo.jpg",
     icon: "ti-steering-wheel",
     detail: {
       overview: [
@@ -104,7 +105,6 @@ const PROJECTS = [
         ["Event", "Purdue StarkHacks — 36-hour hackathon, team of 4"]
       ],
       gallery: [
-        "assets/img/driver-monitor.svg",
         "assets/img/driver-monitor-demo.jpg",
         "assets/img/driver-monitor-dashboard.jpg",
         "assets/img/driver-monitor-earpiece-evolution.jpg",
@@ -124,7 +124,7 @@ const PROJECTS = [
     year: "2026",
     blurb: "Wearable dual-ESP32 posture coach that detects upper-body deviations and delivers real-time corrective feedback.",
     tags: ["firmware", "software"],
-    thumb: "assets/img/posture-monitor.svg",
+    thumb: "assets/img/posture-monitor-dashboard.png",
     icon: "ti-yoga",
     detail: {
       overview: [
@@ -138,6 +138,7 @@ const PROJECTS = [
         ["Feedback", "Non-blocking, graduated actuator response"],
         ["Context", "University of California, Berkeley"]
       ],
+      gallery: ["assets/img/posture-monitor-dashboard.png"],
       embed: {
         url: "https://phone-dashboard-five.vercel.app/",
         label: "Live dashboard",
@@ -152,7 +153,7 @@ const PROJECTS = [
     year: "2024",
     blurb: "A household readiness model for pet ownership that promotes adoption and cuts abandonment.",
     tags: ["math"],
-    thumb: "assets/img/immc-2024.svg",
+    thumb: "assets/img/immc-2024-retention-charts.png",
     icon: "ti-paw",
     detail: {
       overview: [
@@ -167,7 +168,6 @@ const PROJECTS = [
         ["Key result", "29.2% of U.S. households ready for a cat; 95.3% cat retention vs. 88.8% dog retention"]
       ],
       gallery: [
-        "assets/img/immc-2024.svg",
         "assets/img/immc-2024-retention-charts.png"
       ],
       links: [
@@ -182,7 +182,7 @@ const PROJECTS = [
     year: "2025",
     blurb: "A fairness- and travel-optimized scheduling system for a 20-team global volleyball league.",
     tags: ["math"],
-    thumb: "assets/img/immc-2025.svg",
+    thumb: "assets/img/immc-2025-infographic.png",
     icon: "ti-world",
     detail: {
       overview: [
@@ -198,7 +198,6 @@ const PROJECTS = [
         ["Recognition", "Finalist, 2025 IM²C USA Regional Contest"]
       ],
       gallery: [
-        "assets/img/immc-2025.svg",
         "assets/img/immc-2025-infographic.png"
       ],
       links: [
@@ -213,7 +212,7 @@ const PROJECTS = [
     year: "2026",
     blurb: "A project focused on the design and fabrication of custom awards for the Berkeley Engineering Youth Academy (BEYA).",
     tags: ["mechanical"],
-    thumb: "assets/img/me-awards.svg",
+    thumb: "assets/img/me-awards-2.png",
     icon: "ti-trophy",
     detail: {
       overview: [
@@ -227,9 +226,8 @@ const PROJECTS = [
         ["Recognition", "Featured in BEYA 2026 showcase"]
       ],
       gallery: [
-        "assets/img/me-awards.svg",
-        "assets/img/me-awards-1.png",
         "assets/img/me-awards-2.png",
+        "assets/img/me-awards-1.png",
         "assets/img/me-awards-3.png"
       ],
       cad: [
@@ -246,7 +244,7 @@ const PROJECTS = [
     year: "2025",
     blurb: "A hierarchical statistical model forecasting the 2028 LA Olympics medal table from 128 years of IOC data.",
     tags: ["math"],
-    thumb: "assets/img/mcm-2025.svg",
+    thumb: "assets/img/mcm-2025-fig1-regression.png",
     icon: "ti-medal",
     detail: {
       overview: [
@@ -262,7 +260,6 @@ const PROJECTS = [
         ["Headline prediction", "USA 48 golds, Germany 28, China 25 for LA 2028"]
       ],
       gallery: [
-        "assets/img/mcm-2025.svg",
         "assets/img/mcm-2025-fig1-regression.png",
         "assets/img/mcm-2025-fig2-dbscan.png"
       ],

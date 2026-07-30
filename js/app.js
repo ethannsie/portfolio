@@ -8,6 +8,11 @@ const DISCIPLINES = ["mechanical", "electronics", "firmware", "software", "math"
 const esc = (s) => String(s).replace(/[&<>"]/g, c =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
+function initials(name) {
+  const parts = name.trim().split(/\s+/);
+  return parts.length < 2 ? name.toUpperCase() : `${parts[0][0]}. ${parts[parts.length - 1].toUpperCase()}`;
+}
+
 /* ---------- shared header + footer ---------- */
 function renderChrome() {
   const brand = document.getElementById("brand");
@@ -27,20 +32,32 @@ function renderChrome() {
   const footer = document.getElementById("footer");
   if (footer) {
     footer.innerHTML = `
-      <div class="block">
-        <span class="label">${esc(PROFILE.name)}</span>
-        <span>${esc(PROFILE.role)} — ${esc(PROFILE.school)}</span>
-      </div>
-      <div class="block">
-        <span class="label">Contact</span>
-        <a href="mailto:${esc(PROFILE.email)}">${esc(PROFILE.email)}</a>
-      </div>
-      <div class="block">
-        <span class="label">Elsewhere</span>
-        <span>
-          ${PROFILE.github ? `<a href="${esc(PROFILE.github)}">GitHub</a>` : ""}
-          ${PROFILE.linkedin ? ` · <a href="${esc(PROFILE.linkedin)}">LinkedIn</a>` : ""}
-        </span>
+      <div class="titleblock">
+        <div class="tb-row tb-row--wide">
+          <div class="tb-cell tb-title">
+            <span class="tb-label">Title</span>
+            <span class="tb-value">${esc(PROFILE.name)} — ${esc(PROFILE.role)}</span>
+          </div>
+          <div class="tb-cell">
+            <span class="tb-label">Contact</span>
+            <span class="tb-value"><a href="mailto:${esc(PROFILE.email)}">${esc(PROFILE.email)}</a></span>
+          </div>
+          <div class="tb-cell">
+            <span class="tb-label">Elsewhere</span>
+            <span class="tb-value">
+              ${PROFILE.github ? `<a href="${esc(PROFILE.github)}">GitHub</a>` : ""}
+              ${PROFILE.linkedin ? ` · <a href="${esc(PROFILE.linkedin)}">LinkedIn</a>` : ""}
+            </span>
+          </div>
+        </div>
+        <div class="tb-row tb-row--meta">
+          <div class="tb-cell"><span class="tb-label">Drawn</span><span class="tb-value">${esc(initials(PROFILE.name))}</span></div>
+          <div class="tb-cell"><span class="tb-label">Date</span><span class="tb-value">${new Date().getFullYear()}</span></div>
+          <div class="tb-cell"><span class="tb-label">Scale</span><span class="tb-value">N.T.S.</span></div>
+          <div class="tb-cell"><span class="tb-label">Size</span><span class="tb-value">A</span></div>
+          <div class="tb-cell"><span class="tb-label">Sheet</span><span class="tb-value">1 OF 1</span></div>
+          <div class="tb-cell"><span class="tb-label">Rev</span><span class="tb-value">A</span></div>
+        </div>
       </div>`;
   }
 }
@@ -57,35 +74,54 @@ function renderGrid() {
   const present = DISCIPLINES.filter(d => PROJECTS.some(p => p.tags.includes(d)));
   const options = ["all", ...present];
   let active = "all";
+  let query = "";
 
-  filterBar.innerHTML = options.map(o =>
-    `<button class="filter" data-f="${o}" aria-pressed="${o === "all"}">${o}</button>`
-  ).join("");
+  // flatten each project's key info (title, blurb, tags, year, overview,
+  // specs, links) into one lowercase blob so search can match any of it
+  const searchIndex = new Map(PROJECTS.map(p => {
+    const d = p.detail || {};
+    const text = [
+      p.title, p.blurb, p.year, ...p.tags,
+      ...(d.overview || []),
+      ...(d.specs || []).flat(),
+      ...(d.links || []).map(l => l.label),
+    ].join(" ").toLowerCase();
+    return [p.slug, text];
+  }));
 
-  function card(p) {
+  filterBar.innerHTML = `
+    <label class="search-box">
+      <i class="ti ti-search"></i>
+      <input type="search" id="project-search" placeholder="Search projects…" aria-label="Search projects" autocomplete="off">
+    </label>
+    ${options.map(o => `<button class="filter" data-f="${o}" aria-pressed="${o === "all"}">${o}</button>`).join("")}
+  `;
+
+  function card(p, i) {
     return `
-      <a class="card" href="project.html?p=${encodeURIComponent(p.slug)}">
+      <a class="card" href="project.html?p=${encodeURIComponent(p.slug)}" data-slug="${esc(p.slug)}" style="animation-delay:${Math.min(i, 8) * 45}ms">
         <img class="thumb" src="${esc(p.thumb)}" alt="${esc(p.title)}" loading="lazy">
         <div class="card-body">
           <div class="card-meta mono">
-            <span class="card-id">${esc(p.id)}</span>
             <span>${esc(p.year)}</span>
           </div>
           <h2 class="card-title">${esc(p.title)}</h2>
           <p class="card-blurb">${esc(p.blurb)}</p>
           <div class="tags">
-            ${p.tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}
+            ${p.tags.map(t => `<span class="tag tag-${esc(t)}">${esc(t)}</span>`).join("")}
           </div>
         </div>
       </a>`;
   }
 
-  function draw() {
-    const list = active === "all" ? PROJECTS : PROJECTS.filter(p => p.tags.includes(active));
+  function draw(animate = true) {
+    let list = active === "all" ? PROJECTS : PROJECTS.filter(p => p.tags.includes(active));
+    if (query) list = list.filter(p => searchIndex.get(p.slug).includes(query));
+    grid.classList.toggle("no-anim", !animate);
     grid.innerHTML = list.length
       ? list.map(card).join("")
-      : `<p class="empty">No projects tagged “${esc(active)}” yet.</p>`;
-    if (countEl) countEl.textContent = String(PROJECTS.length).padStart(2, "0");
+      : `<p class="empty">${query ? `No projects match “${esc(query)}”.` : `No projects tagged “${esc(active)}” yet.`}</p>`;
+    if (countEl) countEl.textContent = String(list.length).padStart(2, "0");
   }
 
   filterBar.addEventListener("click", (e) => {
@@ -95,6 +131,11 @@ function renderGrid() {
     filterBar.querySelectorAll(".filter").forEach(b =>
       b.setAttribute("aria-pressed", String(b.dataset.f === active)));
     draw();
+  });
+
+  filterBar.querySelector("#project-search").addEventListener("input", (e) => {
+    query = e.target.value.trim().toLowerCase();
+    draw(false);
   });
 
   draw();
@@ -115,9 +156,8 @@ function renderDetail() {
 
   document.title = `${p.title} — ${PROFILE.name}`;
   const d = p.detail || {};
-
-  const heroSrc = (d.gallery && d.gallery[0]) || p.thumb;
-  const hero = `<figure class="hero-figure"><button type="button" class="zoomable"><img src="${esc(heroSrc)}" alt="${esc(p.title)}"></button></figure>`;
+  root.classList.toggle("detail--eecs", p.tags.some(t => ["electronics", "firmware", "software"].includes(t)));
+  const isPreview = new URLSearchParams(location.search).get("preview") === "1";
 
   const overview = (d.overview || []).length
     ? `<div class="prose-block"><h3>Overview</h3><div class="prose">${d.overview.map(t => `<p>${esc(t)}</p>`).join("")}</div></div>`
@@ -134,10 +174,9 @@ function renderDetail() {
       ).join("")}</div></div>`
     : "";
 
-  const gallery = (d.gallery || []).length > 1
-    ? `<div class="prose-block gallery-section">
-        <h3>Gallery</h3>
-        <div class="gallery" role="region" aria-label="Project gallery, scroll for more" tabindex="0">${d.gallery.slice(1).map(src =>
+  const gallery = (d.gallery || []).length
+    ? `<div class="prose-block hero-gallery">
+        <div class="gallery" role="region" aria-label="Project gallery, scroll for more" tabindex="0">${d.gallery.map(src =>
           `<button type="button" class="zoomable"><img src="${esc(src)}" alt="${esc(p.title)}" loading="lazy"></button>`).join("")}</div>
       </div>`
     : "";
@@ -157,11 +196,11 @@ function renderDetail() {
       </div>`
     : "";
 
-  const embed = d.embed
+  const embed = d.embed && !isPreview
     ? `<div class="prose-block embed-section"><h3>${esc(d.embed.label || "Interactive demo")}</h3><div class="embed-frame" style="height:${esc(d.embed.height || 950)}px"><iframe src="${esc(d.embed.url)}" loading="lazy" allowfullscreen></iframe></div></div>`
     : "";
 
-  const cadFiles = Array.isArray(d.cad) ? d.cad : (d.cad ? [d.cad] : []);
+  const cadFiles = isPreview ? [] : (Array.isArray(d.cad) ? d.cad : (d.cad ? [d.cad] : []));
   const cad = cadFiles.length
     ? `<div class="prose-block cad-block" style="display:none">
         <h3>CAD — exploded view <span class="cad-count mono" hidden></span></h3>
@@ -176,22 +215,20 @@ function renderDetail() {
   root.innerHTML = `
     <a class="back" href="index.html"><i class="ti ti-arrow-left"></i> all work</a>
     <div class="detail-head">
-      <div class="detail-id mono">${esc(p.id)}</div>
       <h1 class="detail-title">${esc(p.title)}</h1>
       <div class="detail-tags">
         <span class="detail-year mono">${esc(p.year)}</span>
-        ${p.tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}
+        ${p.tags.map(t => `<span class="tag tag-${esc(t)}">${esc(t)}</span>`).join("")}
       </div>
     </div>
-    ${hero}
+    ${gallery}
     <div class="detail-cols">
       <div>${overview}</div>
       <aside class="side">${specs}${specs && links ? '<div style="height:32px"></div>' : ''}${links}</aside>
     </div>
     ${embed}
     ${media}
-    ${cad}
-    ${gallery}`;
+    ${cad}`;
 
   if (cadFiles.length && window.CadViewer) {
     window.CadViewer.mount(document.getElementById("cad-strip"), cadFiles, d.specs);
@@ -249,9 +286,77 @@ function initLightbox() {
   });
 }
 
+/* ---------- hover preview of a project's page, on the home grid ----------
+   Loads the real project page in a scaled-down iframe (with ?preview=1,
+   which tells renderDetail to skip mounting the CAD viewer / embed so a
+   quick hover doesn't trigger a full WASM/three.js load). Only wired up
+   on devices that have real hover (skips touch entirely). */
+function initCardPreview() {
+  if (!window.matchMedia("(hover: hover)").matches) return;
+
+  const FRAME_W = 1280, FRAME_H = 900, PANEL_W = 340, PANEL_H = 239;
+  const SCALE = PANEL_W / FRAME_W;
+
+  let panel, iframe, showTimer, hideTimer, activeSlug;
+
+  function ensurePanel() {
+    if (panel) return;
+    panel = document.createElement("div");
+    panel.className = "card-preview";
+    panel.innerHTML = `<iframe tabindex="-1" aria-hidden="true"></iframe>`;
+    document.body.appendChild(panel);
+    iframe = panel.querySelector("iframe");
+    iframe.style.width = `${FRAME_W}px`;
+    iframe.style.height = `${FRAME_H}px`;
+    iframe.style.transform = `scale(${SCALE})`;
+  }
+
+  function position(cardEl) {
+    const rect = cardEl.getBoundingClientRect();
+    let left = rect.right + 16;
+    if (left + PANEL_W > window.innerWidth - 12) left = rect.left - PANEL_W - 16;
+    left = Math.min(Math.max(left, 12), window.innerWidth - PANEL_W - 12);
+    const top = Math.min(Math.max(rect.top, 12), window.innerHeight - PANEL_H - 12);
+    panel.style.left = `${left}px`;
+    panel.style.top = `${top}px`;
+  }
+
+  function show(cardEl, slug) {
+    ensurePanel();
+    if (activeSlug !== slug) {
+      activeSlug = slug;
+      iframe.src = `project.html?p=${encodeURIComponent(slug)}&preview=1`;
+    }
+    position(cardEl);
+    panel.classList.add("is-visible");
+  }
+
+  function hide() {
+    if (panel) panel.classList.remove("is-visible");
+  }
+
+  document.addEventListener("pointerover", (e) => {
+    const card = e.target.closest(".card");
+    if (!card || !card.dataset.slug) return;
+    clearTimeout(hideTimer);
+    clearTimeout(showTimer);
+    showTimer = setTimeout(() => show(card, card.dataset.slug), 350);
+  });
+
+  document.addEventListener("pointerout", (e) => {
+    const card = e.target.closest(".card");
+    if (!card || card.contains(e.relatedTarget)) return;
+    clearTimeout(showTimer);
+    hideTimer = setTimeout(hide, 80);
+  });
+
+  window.addEventListener("scroll", hide, { passive: true, capture: true });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   renderChrome();
   renderGrid();
   renderDetail();
   initLightbox();
+  initCardPreview();
 });
