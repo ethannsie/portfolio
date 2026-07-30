@@ -89,7 +89,7 @@ const PROJECTS = [
     year: "2026",
     blurb: "Camera-free driver-coaching wearable built in 36 hours at Purdue's StarkHacks, using dual ESP32-S3 IMUs and real-time audio feedback.",
     tags: ["firmware", "software"],
-    thumb: "assets/img/driver-monitor-demo.jpg",
+    thumb: "assets/img/driver-monitor-dashboard.jpg",
     icon: "ti-steering-wheel",
     detail: {
       overview: [
