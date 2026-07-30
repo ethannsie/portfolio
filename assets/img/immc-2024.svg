@@ -6,10 +6,10 @@
   </defs>
   <rect width="640" height="400" fill="#f4f6f4"/>
   <rect width="640" height="400" fill="url(#g)"/>
-  <g stroke="#1F3A5F" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" fill="none">
+  <g stroke="#7A3B5E" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" fill="none">
     <rect x="230" y="150" width="180" height="110" rx="10"/>
   </g>
-  <g fill="#1F3A5F">
+  <g fill="#7A3B5E">
     <ellipse cx="320" cy="222" rx="27" ry="21"/>
     <circle cx="286" cy="187" r="10"/>
     <circle cx="306" cy="169" r="11"/>

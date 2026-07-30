@@ -6,14 +6,14 @@
   </defs>
   <rect width="640" height="400" fill="#f4f6f4"/>
   <rect width="640" height="400" fill="url(#g)"/>
-  <g stroke="#1F3A5F" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" fill="none">
+  <g stroke="#7A3B5E" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" fill="none">
     <circle cx="320" cy="205" r="70"/>
     <ellipse cx="320" cy="205" rx="24" ry="70"/>
     <path d="M250 205 H390"/>
     <path d="M281 165 L356 236"/>
     <path d="M366 176 L299 251"/>
   </g>
-  <g fill="#1F3A5F">
+  <g fill="#7A3B5E">
     <circle cx="281" cy="165" r="5"/>
     <circle cx="366" cy="176" r="5"/>
     <circle cx="299" cy="251" r="5"/>

@@ -6,7 +6,7 @@
   </defs>
   <rect width="640" height="400" fill="#f4f6f4"/>
   <rect width="640" height="400" fill="url(#g)"/>
-  <g stroke="#1F3A5F" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" fill="none">
+  <g stroke="#7A3B5E" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" fill="none">
     <rect x="250" y="200" width="50" height="60"/>
     <rect x="305" y="170" width="55" height="90"/>
     <rect x="365" y="220" width="50" height="40"/>

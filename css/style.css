@@ -19,6 +19,18 @@
   --copper-bright:#C97A3D;
   --copper-bg:    #FBEEE3;
   --copper-ink:   #8A4A1F;
+  --green:        #2F6B4F;   /* terminal/solder-mask accent — firmware */
+  --green-bright: #4A8F6D;
+  --green-bg:     #E9F3EE;
+  --green-ink:    #245840;
+  --violet:       #5B4B93;   /* code-editor accent — software */
+  --violet-bright:#7B69B8;
+  --violet-bg:    #F0EEF8;
+  --violet-ink:   #4A3D7A;
+  --plum:         #7A3B5E;   /* academic accent — math */
+  --plum-bright:  #A0568A;
+  --plum-bg:      #F6EBF1;
+  --plum-ink:     #67304E;
 
   --maxw: 1160px;
   --gap: 22px;
@@ -43,6 +55,18 @@
     --copper-bright:#E8A66E;
     --copper-bg:    #2C2013;
     --copper-ink:   #E3A874;
+    --green:        #6FAF8D;
+    --green-bright: #8FCBAB;
+    --green-bg:     #16241D;
+    --green-ink:    #8FCBAB;
+    --violet:       #9C8FD4;
+    --violet-bright:#B6ACE0;
+    --violet-bg:    #211E33;
+    --violet-ink:   #B6ACE0;
+    --plum:         #C186AA;
+    --plum-bright:  #D5A6C3;
+    --plum-bg:      #2A1A23;
+    --plum-ink:     #D5A6C3;
   }
 }
 
@@ -129,6 +153,15 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .filter[data-f="mechanical"][aria-pressed="true"] {
   background: var(--copper); border-color: var(--copper);
 }
+.filter[data-f="firmware"][aria-pressed="true"] {
+  background: var(--green); border-color: var(--green);
+}
+.filter[data-f="software"][aria-pressed="true"] {
+  background: var(--violet); border-color: var(--violet);
+}
+.filter[data-f="math"][aria-pressed="true"] {
+  background: var(--plum); border-color: var(--plum);
+}
 
 /* ---- project grid ---- */
 .grid {
@@ -185,6 +218,9 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
   background: var(--tag-bg); color: var(--tag-ink);
 }
 .tag-mechanical { background: var(--copper-bg); color: var(--copper-ink); }
+.tag-firmware { background: var(--green-bg); color: var(--green-ink); }
+.tag-software { background: var(--violet-bg); color: var(--violet-ink); }
+.tag-math { background: var(--plum-bg); color: var(--plum-ink); }
 
 .empty { color: var(--muted); font-size: 14px; padding: 40px 0; }
 
