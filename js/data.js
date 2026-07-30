@@ -212,7 +212,7 @@ const PROJECTS = [
     year: "2026",
     blurb: "A project focused on the design and fabrication of custom awards for the Berkeley Engineering Youth Academy (BEYA).",
     tags: ["mechanical"],
-    thumb: "assets/img/me-awards-1.png",
+    thumb: "assets/img/me-awards-2.png",
     icon: "ti-trophy",
     detail: {
       overview: [
@@ -226,8 +226,8 @@ const PROJECTS = [
         ["Recognition", "Featured in BEYA 2026 showcase"]
       ],
       gallery: [
-        "assets/img/me-awards-1.png",
         "assets/img/me-awards-2.png",
+        "assets/img/me-awards-1.png",
         "assets/img/me-awards-3.png"
       ],
       cad: [
