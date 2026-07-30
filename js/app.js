@@ -8,6 +8,11 @@ const DISCIPLINES = ["mechanical", "electronics", "firmware", "software", "math"
 const esc = (s) => String(s).replace(/[&<>"]/g, c =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
+function initials(name) {
+  const parts = name.trim().split(/\s+/);
+  return parts.length < 2 ? name.toUpperCase() : `${parts[0][0]}. ${parts[parts.length - 1].toUpperCase()}`;
+}
+
 /* ---------- shared header + footer ---------- */
 function renderChrome() {
   const brand = document.getElementById("brand");
@@ -27,20 +32,32 @@ function renderChrome() {
   const footer = document.getElementById("footer");
   if (footer) {
     footer.innerHTML = `
-      <div class="block">
-        <span class="label">${esc(PROFILE.name)}</span>
-        <span>${esc(PROFILE.role)} — ${esc(PROFILE.school)}</span>
-      </div>
-      <div class="block">
-        <span class="label">Contact</span>
-        <a href="mailto:${esc(PROFILE.email)}">${esc(PROFILE.email)}</a>
-      </div>
-      <div class="block">
-        <span class="label">Elsewhere</span>
-        <span>
-          ${PROFILE.github ? `<a href="${esc(PROFILE.github)}">GitHub</a>` : ""}
-          ${PROFILE.linkedin ? ` · <a href="${esc(PROFILE.linkedin)}">LinkedIn</a>` : ""}
-        </span>
+      <div class="titleblock">
+        <div class="tb-row tb-row--wide">
+          <div class="tb-cell tb-title">
+            <span class="tb-label">Title</span>
+            <span class="tb-value">${esc(PROFILE.name)} — ${esc(PROFILE.role)}</span>
+          </div>
+          <div class="tb-cell">
+            <span class="tb-label">Contact</span>
+            <span class="tb-value"><a href="mailto:${esc(PROFILE.email)}">${esc(PROFILE.email)}</a></span>
+          </div>
+          <div class="tb-cell">
+            <span class="tb-label">Elsewhere</span>
+            <span class="tb-value">
+              ${PROFILE.github ? `<a href="${esc(PROFILE.github)}">GitHub</a>` : ""}
+              ${PROFILE.linkedin ? ` · <a href="${esc(PROFILE.linkedin)}">LinkedIn</a>` : ""}
+            </span>
+          </div>
+        </div>
+        <div class="tb-row tb-row--meta">
+          <div class="tb-cell"><span class="tb-label">Drawn</span><span class="tb-value">${esc(initials(PROFILE.name))}</span></div>
+          <div class="tb-cell"><span class="tb-label">Date</span><span class="tb-value">${new Date().getFullYear()}</span></div>
+          <div class="tb-cell"><span class="tb-label">Scale</span><span class="tb-value">N.T.S.</span></div>
+          <div class="tb-cell"><span class="tb-label">Size</span><span class="tb-value">A</span></div>
+          <div class="tb-cell"><span class="tb-label">Sheet</span><span class="tb-value">1 OF 1</span></div>
+          <div class="tb-cell"><span class="tb-label">Rev</span><span class="tb-value">A</span></div>
+        </div>
       </div>`;
   }
 }
@@ -62,9 +79,9 @@ function renderGrid() {
     `<button class="filter" data-f="${o}" aria-pressed="${o === "all"}">${o}</button>`
   ).join("");
 
-  function card(p) {
+  function card(p, i) {
     return `
-      <a class="card" href="project.html?p=${encodeURIComponent(p.slug)}" data-slug="${esc(p.slug)}">
+      <a class="card" href="project.html?p=${encodeURIComponent(p.slug)}" data-slug="${esc(p.slug)}" style="animation-delay:${Math.min(i, 8) * 45}ms">
         <img class="thumb" src="${esc(p.thumb)}" alt="${esc(p.title)}" loading="lazy">
         <div class="card-body">
           <div class="card-meta mono">
@@ -114,6 +131,7 @@ function renderDetail() {
 
   document.title = `${p.title} — ${PROFILE.name}`;
   const d = p.detail || {};
+  root.classList.toggle("detail--eecs", p.tags.some(t => ["electronics", "firmware", "software"].includes(t)));
   const isPreview = new URLSearchParams(location.search).get("preview") === "1";
 
   const heroSrc = (d.gallery && d.gallery[0]) || p.thumb;
