@@ -1,16 +1,16 @@
 /* ============================================================
-   Scans assets/notes/ for PDFs and generates:
-     - a first-page thumbnail per PDF, in assets/notes/thumbs/
-     - js/notes-data.js, the data file notes.html renders from
+   Scans assets/notes/ for note folders (each one a folder of
+   numbered JPEG pages: 1.jpg, 2.jpg, ...) and generates:
+     - a small thumbnail from page 1, in assets/notes/thumbs/<slug>.jpg
+     - web-sized copies of every page, in assets/notes/thumbs/<slug>/
+     - js/notes-data.js, the data file notes.html / note.html render from
 
    Run manually with `npm run build:notes`, or automatically via
    the .githooks/pre-commit hook whenever a commit touches
    assets/notes/ — the hook stages the results into that commit.
 
    Uses macOS's built-in `sips` (already relied on by
-   scripts/build-pdf.js) plus poppler's `pdftoppm`/`pdfinfo`
-   (already installed — same tools used throughout this project's
-   PDF tooling) instead of adding npm dependencies.
+   scripts/build-pdf.js) instead of adding npm/image deps.
    ============================================================ */
 
 const fs = require("fs");
@@ -26,7 +26,6 @@ fs.mkdirSync(THUMB_DIR, { recursive: true });
 
 function slugify(name) {
   return name
-    .replace(/\.pdf$/i, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
@@ -34,99 +33,109 @@ function slugify(name) {
 
 function titleize(name) {
   return name
-    .replace(/\.pdf$/i, "")
     .replace(/[-_]+/g, " ")
     .replace(/\s+/g, " ")
     .trim()
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function pageCount(pdfPath) {
-  try {
-    const out = execFileSync("pdfinfo", [pdfPath], { encoding: "utf8" });
-    const m = out.match(/Pages:\s+(\d+)/);
-    return m ? parseInt(m[1], 10) : null;
-  } catch {
-    return null;
-  }
+function resize(src, out, maxWidth) {
+  execFileSync("sips", [
+    "-s", "format", "jpeg",
+    "-s", "formatOptions", "82",
+    "-Z", String(maxWidth),
+    src,
+    "--out", out,
+  ], { stdio: "pipe" });
 }
 
-function humanSize(bytes) {
-  if (bytes < 1024) return `${bytes} B`;
-  const units = ["KB", "MB", "GB"];
-  let n = bytes / 1024, i = 0;
-  while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
-  return `${n.toFixed(n < 10 ? 1 : 0)} ${units[i]}`;
-}
+// every note is a folder directly under assets/notes/ (not "thumbs")
+// containing numbered page images: 1.jpg, 2.jpeg, 3.jpg, ...
+const PAGE_RE = /^(\d+)\.(jpe?g)$/i;
 
-const pdfFiles = fs.readdirSync(NOTES_DIR).filter((f) => f.toLowerCase().endsWith(".pdf"));
+const rawFolders = fs.readdirSync(NOTES_DIR, { withFileTypes: true })
+  .filter((e) => e.isDirectory() && e.name !== "thumbs")
+  .map((e) => e.name);
 
-const notes = pdfFiles.map((originalName) => {
+const notes = rawFolders.map((originalName) => {
   const slug = slugify(originalName);
   const title = titleize(originalName);
 
-  // Serve every note under a slugified filename, no matter what it was
-  // dropped in as. Vercel's router reserves [bracket] syntax for dynamic
-  // routes even on plain static files, so a name like "[Incomplete] Notes.pdf"
-  // 404s once deployed — square brackets, spaces, and other punctuation
-  // are all safest to just not have in a served path. The original
-  // filename still drives the human-readable title above.
-  const safeName = `${slug}.pdf`;
-  let src = path.join(NOTES_DIR, originalName);
-  if (originalName !== safeName) {
-    const safeSrc = path.join(NOTES_DIR, safeName);
-    fs.renameSync(src, safeSrc);
-    src = safeSrc;
-    console.log(`renamed "${originalName}" -> "${safeName}" (URL-safe for deployment)`);
+  // Serve every note under a slugified folder name, no matter what it
+  // was dropped in as. Vercel's router treats [bracket] syntax in a
+  // path as a dynamic-route pattern even for plain static files, so a
+  // folder like "[Incomplete] Notes" 404s once deployed even though it
+  // works fine against a local server. The original folder name still
+  // drives the human-readable title above.
+  let dir = path.join(NOTES_DIR, originalName);
+  if (originalName !== slug) {
+    const safeDir = path.join(NOTES_DIR, slug);
+    fs.renameSync(dir, safeDir);
+    dir = safeDir;
+    console.log(`renamed "${originalName}/" -> "${slug}/" (URL-safe for deployment)`);
   }
 
-  const stat = fs.statSync(src);
-  const thumbName = `${slug}.jpg`;
-  const thumbPath = path.join(THUMB_DIR, thumbName);
+  const pages = fs.readdirSync(dir)
+    .map((f) => ({ f, m: f.match(PAGE_RE) }))
+    .filter((x) => x.m)
+    .sort((a, b) => Number(a.m[1]) - Number(b.m[1]))
+    .map((x) => x.f);
 
-  // (re)build the thumbnail only if it's missing or stale
-  if (!fs.existsSync(thumbPath) || fs.statSync(thumbPath).mtimeMs < stat.mtimeMs) {
-    const tmpPng = path.join(THUMB_DIR, `.tmp-${slug}.png`);
-    execFileSync("pdftoppm", [
-      "-png", "-singlefile",
-      "-r", "150",
-      "-f", "1", "-l", "1",
-      src,
-      tmpPng.replace(/\.png$/, ""),
-    ], { stdio: "pipe" });
-    execFileSync("sips", [
-      "-s", "format", "jpeg",
-      "-s", "formatOptions", "82",
-      "-Z", "900",
-      tmpPng,
-      "--out", thumbPath,
-    ], { stdio: "pipe" });
-    fs.unlinkSync(tmpPng);
+  const pageThumbDir = path.join(THUMB_DIR, slug);
+  fs.mkdirSync(pageThumbDir, { recursive: true });
+
+  const images = pages.map((file, i) => {
+    const src = path.join(dir, file);
+    const outName = `${i + 1}.jpg`;
+    const out = path.join(pageThumbDir, outName);
+    // web-sized copy for the reader view — the raw camera photos this
+    // reads from can run several MB each, which is what made the old
+    // PDF-based version feel laggy to open
+    if (!fs.existsSync(out) || fs.statSync(out).mtimeMs < fs.statSync(src).mtimeMs) {
+      resize(src, out, 1600);
+    }
+    return `assets/notes/thumbs/${slug}/${outName}`;
+  });
+
+  const thumbPath = path.join(THUMB_DIR, `${slug}.jpg`);
+  if (pages.length) {
+    const firstSrc = path.join(dir, pages[0]);
+    if (!fs.existsSync(thumbPath) || fs.statSync(thumbPath).mtimeMs < fs.statSync(firstSrc).mtimeMs) {
+      resize(firstSrc, thumbPath, 900);
+    }
   }
+
+  const added = pages.length
+    ? fs.statSync(path.join(dir, pages[0])).mtime.toISOString().slice(0, 10)
+    : new Date().toISOString().slice(0, 10);
 
   return {
     slug,
     title,
-    file: `assets/notes/${safeName}`,
-    thumb: `assets/notes/thumbs/${thumbName}`,
-    pages: pageCount(src),
-    size: humanSize(stat.size),
-    added: stat.mtime.toISOString().slice(0, 10),
+    thumb: `assets/notes/thumbs/${slug}.jpg`,
+    images,
+    pages: images.length,
+    added,
   };
-});
+}).filter((n) => n.pages > 0);
 
 notes.sort((a, b) => b.added.localeCompare(a.added) || a.title.localeCompare(b.title));
 
-// clean up thumbnails for PDFs that no longer exist
-const keep = new Set(notes.map((n) => path.basename(n.thumb)));
+// clean up generated files for notes that no longer exist
+const keepSlugs = new Set(notes.map((n) => n.slug));
 for (const f of fs.readdirSync(THUMB_DIR)) {
-  if (f.endsWith(".jpg") && !keep.has(f)) fs.unlinkSync(path.join(THUMB_DIR, f));
+  const isDir = fs.statSync(path.join(THUMB_DIR, f)).isDirectory();
+  const slug = isDir ? f : f.replace(/\.jpg$/, "");
+  if (!keepSlugs.has(slug)) {
+    fs.rmSync(path.join(THUMB_DIR, f), { recursive: true, force: true });
+  }
 }
 
 const banner = `/* ============================================================
    AUTO-GENERATED by scripts/build-notes.js — do not edit by hand.
-   Drop a PDF into assets/notes/ and commit; the pre-commit hook
-   regenerates this file and the first-page thumbnail for you.
+   Drop a folder of numbered JPEG pages (1.jpg, 2.jpg, ...) into
+   assets/notes/ and commit; the pre-commit hook regenerates this
+   file and the page/thumbnail images for you.
    ============================================================ */\n\n`;
 
 fs.writeFileSync(OUT_DATA, banner + `const NOTES = ${JSON.stringify(notes, null, 2)};\n`);
