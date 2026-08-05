@@ -4,12 +4,13 @@
    matches whatever's currently live.
 
    Run manually with `npm run build:pdf`, or automatically via
-   the .githooks/post-commit hook whenever a commit touches
-   js/data.js, assets/img/, or assets/papers/.
+   the .githooks/pre-commit hook whenever a commit touches
+   js/data.js, assets/img/, or assets/papers/ — the hook stages
+   the rebuilt PDF into that same commit.
 
-   Output: assets/Ethan-Sie-Portfolio.pdf (gitignored — this is
-   a personal-use artifact, not published to the site) and a
-   convenience copy on the Desktop.
+   Output: assets/Ethan-Sie-Portfolio.pdf (tracked in git, so it
+   lives in the repo alongside the content it's built from) and
+   a convenience copy on the Desktop.
    ============================================================ */
 
 const fs = require("fs");
