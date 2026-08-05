@@ -1,0 +1,18 @@
+#!/bin/sh
+# Rebuilds assets/Ethan-Sie-Portfolio.pdf and stages it whenever a commit
+# touches whatever the PDF is built from — project content, images/papers,
+# or the build script itself — so the PDF ships in the same commit as the
+# content that changed it. Never blocks a commit: it always exits 0.
+
+changed=$(git diff --cached --name-only)
+
+if echo "$changed" | grep -qE '^(js/data\.js|assets/img/|assets/papers/|scripts/build-pdf\.js)'; then
+  echo "portfolio content changed — rebuilding PDF..."
+  if npm run --silent build:pdf; then
+    git add assets/Ethan-Sie-Portfolio.pdf
+  else
+    echo "warning: PDF build failed — commit will proceed without an updated PDF"
+  fi
+fi
+
+exit 0
