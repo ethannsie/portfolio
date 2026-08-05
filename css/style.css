@@ -284,6 +284,19 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .note-card .card-body { gap: 5px; }
 .note-card .card-meta { justify-content: flex-start; }
 
+/* ---- single note reader (note.html) ---- */
+.note-pages {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 40px; padding-bottom: 40px;
+}
+.note-page { margin: 0; width: 100%; max-width: 720px; text-align: center; }
+.note-page .zoomable {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  overflow: hidden; background: var(--panel); cursor: zoom-in;
+}
+.note-page img { width: 100%; display: block; }
+.note-page figcaption { margin-top: 10px; font-size: 11.5px; color: var(--faint); letter-spacing: .04em; }
+
 /* ---- hover preview of a project page (see initCardPreview in app.js) ---- */
 .card-preview {
   position: fixed; z-index: 80; pointer-events: none;
