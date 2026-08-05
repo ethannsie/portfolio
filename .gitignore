@@ -2,3 +2,5 @@
 .claude/settings.local.json
 .DS_Store
 node_modules
+.pdf-build
+assets/Ethan-Sie-Portfolio.pdf

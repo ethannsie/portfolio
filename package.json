@@ -1,0 +1,12 @@
+{
+  "name": "portfolio",
+  "private": true,
+  "scripts": {
+    "build:pdf": "node scripts/build-pdf.js",
+    "postinstall": "playwright install chromium",
+    "prepare": "git config core.hooksPath .githooks"
+  },
+  "devDependencies": {
+    "playwright": "^1.48.0"
+  }
+}
