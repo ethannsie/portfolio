@@ -27,7 +27,7 @@ function renderChrome() {
       `<a href="index.html">work</a>` +
       `<a href="notes.html">notes</a>` +
       `<a href="about.html">about</a>` +
-      (PROFILE.resume ? `<a href="${esc(PROFILE.resume)}">resume</a>` : "") +
+      (PROFILE.resume ? `<a href="${esc(PROFILE.resume)}" target="_blank" rel="noopener">resume</a>` : "") +
       (PROFILE.github ? `<a class="icon" href="${esc(PROFILE.github)}" aria-label="GitHub"><i class="ti ti-brand-github"></i></a>` : "");
   }
   const footer = document.getElementById("footer");
