@@ -60,7 +60,10 @@ function specsTable(specs) {
 
 function linksLine(links) {
   if (!links || !links.length) return "";
-  return `<div class="links">${links.map(l => `<span class="link-item">${esc(l.label)} — <span class="url">${esc(l.url.startsWith("http") ? l.url : SITE + l.url)}</span></span>`).join("  ·  ")}</div>`;
+  return `<div class="links">${links.map(l => {
+    const href = l.url.startsWith("http") ? l.url : SITE + l.url;
+    return `<span class="link-item">${esc(l.label)} — <a class="url" href="${esc(href)}">${esc(href)}</a></span>`;
+  }).join("  ·  ")}</div>`;
 }
 
 // downscale a project's thumb with macOS's built-in `sips` (no extra deps)
@@ -95,10 +98,10 @@ const coverPage = `
     the source or write-up.
   </p>
   <div class="cover-contact mono">
-    <div><span class="k">Email</span> ${esc(PROFILE.email)}</div>
-    <div><span class="k">GitHub</span> ${esc(PROFILE.github.replace(/^https?:\/\//, ""))}</div>
-    <div><span class="k">LinkedIn</span> ${esc(PROFILE.linkedin.replace(/^https?:\/\//, ""))}</div>
-    <div><span class="k">Web</span> ${esc(SITE.replace(/^https?:\/\//, "").replace(/\/$/, ""))}</div>
+    <div><span class="k">Email</span> <a href="mailto:${esc(PROFILE.email)}">${esc(PROFILE.email)}</a></div>
+    <div><span class="k">GitHub</span> <a href="${esc(PROFILE.github)}">${esc(PROFILE.github.replace(/^https?:\/\//, ""))}</a></div>
+    <div><span class="k">LinkedIn</span> <a href="${esc(PROFILE.linkedin)}">${esc(PROFILE.linkedin.replace(/^https?:\/\//, ""))}</a></div>
+    <div><span class="k">Web</span> <a href="${esc(SITE)}">${esc(SITE.replace(/^https?:\/\//, "").replace(/\/$/, ""))}</a></div>
   </div>
   <p class="cover-note">Interactive versions of every project below — exploded-view CAD viewers, live embeds, full photo galleries — are on the site at the link above.</p>
 
@@ -106,7 +109,6 @@ const coverPage = `
     <div class="toc-label mono">CONTENTS</div>
     ${PROJECTS.map(p => `
       <div class="toc-row">
-        <span class="toc-id mono">${esc(p.id)}</span>
         <span class="toc-title">${esc(p.title)}</span>
         <span class="toc-tags">${p.tags.map(tagPill).join(" ")}</span>
         <span class="toc-year mono">${esc(p.year)}</span>
@@ -122,7 +124,6 @@ function projectPage(p, index, total) {
   return `
 <section class="page project">
   <div class="proj-head">
-    <div class="proj-id mono">${esc(p.id)}</div>
     <h2 class="proj-title">${esc(p.title)}</h2>
     <div class="proj-meta">
       <span class="proj-year mono">${esc(p.year)}</span>
@@ -171,6 +172,7 @@ const html = `<!DOCTYPE html>
     line-height: 1.55;
   }
   .mono { font-family: 'JetBrains Mono', monospace; }
+  a { color: inherit; text-decoration: none; }
   .page {
     width: 8.5in;
     min-height: 11in;
@@ -190,7 +192,6 @@ const html = `<!DOCTYPE html>
   .cover-note { font-size: 10.5px; color: #9B988F; max-width: 5.4in; margin: 12px 0 34px; font-style: italic; }
   .toc-label { font-size: 10.5px; letter-spacing: .12em; color: #9B988F; margin-bottom: 14px; }
   .toc-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #E5E3DB; }
-  .toc-id { width: 62px; flex: none; font-size: 11px; color: #6C6A63; }
   .toc-title { flex: 1; font-size: 14px; font-weight: 500; }
   .toc-tags { flex: none; }
   .toc-year { width: 40px; flex: none; text-align: right; font-size: 11px; color: #9B988F; }
@@ -200,7 +201,6 @@ const html = `<!DOCTYPE html>
 
   /* ---- project page ---- */
   .proj-head { border-bottom: 2px solid #191713; padding-bottom: 14px; margin-bottom: 22px; }
-  .proj-id { font-size: 11px; color: #9B988F; letter-spacing: .06em; margin-bottom: 6px; }
   .proj-title { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 8px; }
   .proj-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
   .proj-year { font-size: 11px; color: #9B988F; margin-right: 4px; }
