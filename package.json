@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "build:pdf": "node scripts/build-pdf.js",
+    "build:notes": "node scripts/build-notes.js",
     "postinstall": "playwright install chromium",
     "prepare": "git config core.hooksPath .githooks"
   },
