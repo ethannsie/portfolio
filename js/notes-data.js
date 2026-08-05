@@ -7,8 +7,8 @@
 const NOTES = [
   {
     "slug": "incomplete-gears-power-transmission",
-    "title": "[Incomplete] Gears + Power Transmission",
-    "file": "assets/notes/[Incomplete] Gears + Power Transmission.pdf",
+    "title": "Incomplete Gears Power Transmission",
+    "file": "assets/notes/incomplete-gears-power-transmission.pdf",
     "thumb": "assets/notes/thumbs/incomplete-gears-power-transmission.jpg",
     "pages": 3,
     "size": "18 MB",

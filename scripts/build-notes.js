@@ -61,9 +61,25 @@ function humanSize(bytes) {
 
 const pdfFiles = fs.readdirSync(NOTES_DIR).filter((f) => f.toLowerCase().endsWith(".pdf"));
 
-const notes = pdfFiles.map((file) => {
-  const slug = slugify(file);
-  const src = path.join(NOTES_DIR, file);
+const notes = pdfFiles.map((originalName) => {
+  const slug = slugify(originalName);
+  const title = titleize(originalName);
+
+  // Serve every note under a slugified filename, no matter what it was
+  // dropped in as. Vercel's router reserves [bracket] syntax for dynamic
+  // routes even on plain static files, so a name like "[Incomplete] Notes.pdf"
+  // 404s once deployed — square brackets, spaces, and other punctuation
+  // are all safest to just not have in a served path. The original
+  // filename still drives the human-readable title above.
+  const safeName = `${slug}.pdf`;
+  let src = path.join(NOTES_DIR, originalName);
+  if (originalName !== safeName) {
+    const safeSrc = path.join(NOTES_DIR, safeName);
+    fs.renameSync(src, safeSrc);
+    src = safeSrc;
+    console.log(`renamed "${originalName}" -> "${safeName}" (URL-safe for deployment)`);
+  }
+
   const stat = fs.statSync(src);
   const thumbName = `${slug}.jpg`;
   const thumbPath = path.join(THUMB_DIR, thumbName);
@@ -90,8 +106,8 @@ const notes = pdfFiles.map((file) => {
 
   return {
     slug,
-    title: titleize(file),
-    file: `assets/notes/${file}`,
+    title,
+    file: `assets/notes/${safeName}`,
     thumb: `assets/notes/thumbs/${thumbName}`,
     pages: pageCount(src),
     size: humanSize(stat.size),
