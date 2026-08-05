@@ -257,7 +257,32 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .tag-software { background: var(--violet-bg); color: var(--violet-ink); }
 .tag-math { background: var(--plum-bg); color: var(--plum-ink); }
 
-.empty { color: var(--muted); font-size: 14px; padding: 40px 0; }
+.empty { grid-column: 1 / -1; color: var(--muted); font-size: 14px; padding: 40px 0; }
+
+/* ---- notes gallery ---- */
+.notes-intro { color: var(--muted); font-size: 14px; margin: -6px 0 24px; max-width: 46em; }
+.notes-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+
+.note-thumb-wrap { position: relative; overflow: hidden; border-bottom: 1px solid var(--line); }
+.note-thumb {
+  aspect-ratio: 0.77;
+  width: 100%;
+  object-fit: cover;
+  object-position: top;
+  display: block;
+  background: var(--paper);
+  transition: transform .22s var(--ease);
+}
+.card:hover .note-thumb { transform: translate(-3px, -3px) scale(1.02); }
+.note-badge {
+  position: absolute; top: 9px; right: 9px;
+  font-size: 9.5px; letter-spacing: .06em;
+  padding: 3px 7px; border-radius: 4px;
+  background: var(--ink); color: var(--paper);
+  opacity: .82;
+}
+.note-card .card-body { gap: 5px; }
+.note-card .card-meta { justify-content: flex-start; }
 
 /* ---- hover preview of a project page (see initCardPreview in app.js) ---- */
 .card-preview {

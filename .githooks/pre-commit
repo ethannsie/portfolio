@@ -1,8 +1,7 @@
 #!/bin/sh
-# Rebuilds assets/Ethan-Sie-Portfolio.pdf and stages it whenever a commit
-# touches whatever the PDF is built from — project content, images/papers,
-# or the build script itself — so the PDF ships in the same commit as the
-# content that changed it. Never blocks a commit: it always exits 0.
+# Rebuilds generated PDF-derived assets and stages them so they ship in
+# the same commit as whatever content produced them. Never blocks a
+# commit: build failures print a warning but always exit 0.
 
 changed=$(git diff --cached --name-only)
 
@@ -12,6 +11,15 @@ if echo "$changed" | grep -qE '^(js/data\.js|assets/img/|assets/papers/|scripts/
     git add assets/Ethan-Sie-Portfolio.pdf
   else
     echo "warning: PDF build failed — commit will proceed without an updated PDF"
+  fi
+fi
+
+if echo "$changed" | grep -qE '^(assets/notes/|scripts/build-notes\.js)'; then
+  echo "notes changed — rebuilding note thumbnails..."
+  if npm run --silent build:notes; then
+    git add -A assets/notes/thumbs js/notes-data.js
+  else
+    echo "warning: notes build failed — commit will proceed without updated notes"
   fi
 fi
 
