@@ -51,10 +51,14 @@
   <script>
     document.getElementById("c-email").textContent = PROFILE.email;
     document.getElementById("c-email").href = "mailto:" + PROFILE.email;
+    document.getElementById("c-email").target = "_blank";
+    document.getElementById("c-email").rel = "noopener";
     const gh = document.getElementById("c-github");
     gh.textContent = PROFILE.github.replace(/^https?:\/\//, ""); gh.href = PROFILE.github;
+    gh.target = "_blank"; gh.rel = "noopener";
     const li = document.getElementById("c-linkedin");
     li.textContent = PROFILE.linkedin.replace(/^https?:\/\//, ""); li.href = PROFILE.linkedin;
+    li.target = "_blank"; li.rel = "noopener";
   </script>
 </body>
 </html>

@@ -28,7 +28,7 @@ function renderChrome() {
       `<a href="notes.html">notes</a>` +
       `<a href="about.html">about</a>` +
       (PROFILE.resume ? `<a href="${esc(PROFILE.resume)}" target="_blank" rel="noopener">resume</a>` : "") +
-      (PROFILE.github ? `<a class="icon" href="${esc(PROFILE.github)}" aria-label="GitHub"><i class="ti ti-brand-github"></i></a>` : "");
+      (PROFILE.github ? `<a class="icon" href="${esc(PROFILE.github)}" target="_blank" rel="noopener" aria-label="GitHub"><i class="ti ti-brand-github"></i></a>` : "");
   }
   const footer = document.getElementById("footer");
   if (footer) {
@@ -41,13 +41,13 @@ function renderChrome() {
           </div>
           <div class="tb-cell">
             <span class="tb-label">Contact</span>
-            <span class="tb-value"><a href="mailto:${esc(PROFILE.email)}">${esc(PROFILE.email)}</a></span>
+            <span class="tb-value"><a href="mailto:${esc(PROFILE.email)}" target="_blank" rel="noopener">${esc(PROFILE.email)}</a></span>
           </div>
           <div class="tb-cell">
             <span class="tb-label">Elsewhere</span>
             <span class="tb-value">
-              ${PROFILE.github ? `<a href="${esc(PROFILE.github)}">GitHub</a>` : ""}
-              ${PROFILE.linkedin ? ` · <a href="${esc(PROFILE.linkedin)}">LinkedIn</a>` : ""}
+              ${PROFILE.github ? `<a href="${esc(PROFILE.github)}" target="_blank" rel="noopener">GitHub</a>` : ""}
+              ${PROFILE.linkedin ? ` · <a href="${esc(PROFILE.linkedin)}" target="_blank" rel="noopener">LinkedIn</a>` : ""}
             </span>
           </div>
         </div>
@@ -236,7 +236,7 @@ function renderDetail() {
 
   const links = (d.links || []).length
     ? `<div><h3>Links</h3><div class="links">${d.links.map(l =>
-        `<a class="link-btn" href="${esc(l.url)}">${esc(l.label)}<i class="ti ti-arrow-up-right"></i></a>`
+        `<a class="link-btn" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}<i class="ti ti-arrow-up-right"></i></a>`
       ).join("")}</div></div>`
     : "";
 
