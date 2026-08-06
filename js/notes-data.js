@@ -7,15 +7,17 @@
 
 const NOTES = [
   {
-    "slug": "incomplete-gears-power-transmission",
-    "title": "[Incomplete] Gears + Power Transmission",
-    "thumb": "assets/notes/thumbs/incomplete-gears-power-transmission.jpg",
+    "slug": "gears-power-transmission",
+    "title": "Gears + Power Transmission",
+    "thumb": "assets/notes/thumbs/gears-power-transmission.jpg",
     "images": [
-      "assets/notes/incomplete-gears-power-transmission/1.jpg",
-      "assets/notes/incomplete-gears-power-transmission/2.jpg",
-      "assets/notes/incomplete-gears-power-transmission/3.jpg"
+      "assets/notes/gears-power-transmission/1.jpg",
+      "assets/notes/gears-power-transmission/2.jpg",
+      "assets/notes/gears-power-transmission/3.jpg",
+      "assets/notes/gears-power-transmission/4.jpg",
+      "assets/notes/gears-power-transmission/5.jpg"
     ],
-    "pages": 3,
-    "added": "2026-08-05"
+    "pages": 5,
+    "added": "2026-08-06"
   }
 ];
