@@ -7,6 +7,12 @@ and limits directly out of the Fusion API and writes them to a small
 JSON file that sits next to your STEP export. The site discovers it
 automatically by filename, no other setup needed.
 
+Covers both ways of creating a joint in Fusion — the regular
+Assemble > Joint tool, and Assemble > As-built Joint (for when the
+components were already positioned correctly and you defined the
+joint afterward) — since both show up under different collections in
+Fusion's own API.
+
 ## Running it
 
 1. Open your assembly in Fusion 360.
@@ -52,15 +58,18 @@ automatically by filename, no other setup needed.
 
 ## What's out of scope (on purpose)
 
-- **Chained joints** — if rotating one joint should carry a second
-  joint's parts along with it (a robot-arm-style linkage), that
-  compounding isn't implemented. Each joint here moves independently;
-  a "downstream" joint won't follow its "parent's" current position.
+- **Motion Links** — if you used Assemble > Motion Link to couple two
+  joints with a ratio (gears, rack-and-pinion, a cam follower, etc.),
+  that coupling isn't exported. Both linked joints still export and
+  work individually on the site, but dragging one won't move the
+  other the way it does in Fusion — the script tells you the count of
+  Motion Links it found so this isn't a silent surprise.
 - **Ball / planar / cylindrical joints** — anything with more than one
   degree of freedom doesn't fit a single slider, so these are left out
   and listed in the JSON's `"skipped"` array instead of guessed at.
-- **Nested sub-assemblies** — only `design.rootComponent.joints` is
-  read. A joint created inside a sub-component won't be found.
+- **Nested sub-assemblies** — only joints directly on
+  `design.rootComponent` are read (both regular Joints and As-built
+  Joints). A joint created inside a sub-component won't be found.
 
 ## JSON schema (for reference — you shouldn't need to hand-edit this
 beyond the fixes above)
