@@ -233,6 +233,53 @@ def count_motion_links(root):
         return None
 
 
+def diagnostic_dump_motion_link(root, text_palette):
+    """TEMPORARY: dumps every readable property on the first Motion
+    Link so the real ratio/ direction fields can be identified from a
+    live file instead of guessed. Actually composing motion-linked
+    joints (so dragging one moves the other, matching Fusion's ratio)
+    needs this ground truth first — a wrong guess here would silently
+    move a part to the wrong angle rather than fail cleanly, which is
+    worse than not supporting it yet. Safe to run: read-only, doesn't
+    touch anything this script writes out."""
+    if not text_palette:
+        return
+    try:
+        links = root.motionLinks
+    except Exception as e:
+        text_palette.writeText("  (motion link diagnostic: root.motionLinks raised {})".format(type(e).__name__))
+        return
+    if links.count == 0:
+        return
+
+    text_palette.writeText("\n--- Motion Link diagnostic (first link, temporary — ignore for normal use) ---")
+    link = links.item(0)
+    for attr in sorted(dir(link)):
+        if attr.startswith("_"):
+            continue
+        try:
+            val = getattr(link, attr)
+        except Exception as e:
+            text_palette.writeText("  .{} -> raised {}".format(attr, type(e).__name__))
+            continue
+        if callable(val):
+            continue
+        try:
+            if hasattr(val, "objectType"):
+                type_name = val.objectType.split("::")[-1]
+                friendly = None
+                try:
+                    friendly = val.name
+                except Exception:
+                    pass
+                text_palette.writeText("  .{} = <{}{}>".format(attr, type_name, " '{}'".format(friendly) if friendly else ""))
+            else:
+                text_palette.writeText("  .{} = {}".format(attr, val))
+        except Exception:
+            text_palette.writeText("  .{} = <unprintable>".format(attr))
+    text_palette.writeText("--- end diagnostic ---\n")
+
+
 def run(context):
     ui = None
     try:
@@ -335,6 +382,7 @@ def run(context):
                     .format(link_count)
                 )
             text_palette.writeText("--- {} exported, {} skipped ---\n".format(len(exported), len(skipped)))
+            diagnostic_dump_motion_link(root, text_palette)
 
         if not exported:
             return
