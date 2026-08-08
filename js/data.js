@@ -52,6 +52,12 @@
               (via OpenCascade/WASM), so it can take a moment on
               large assemblies. Delete this field or leave the file(s)
               missing to hide the viewer.
+
+              Got joints you want draggable on the site (not just a
+              static exploded view)? Run scripts/fusion/export_joints_for_web.py
+              in Fusion before exporting — it writes a "<name>.joints.json"
+              sidecar next to the STEP file that the viewer picks up
+              automatically by filename. See scripts/fusion/README.md.
    ============================================================ */
 
 const PROJECTS = [

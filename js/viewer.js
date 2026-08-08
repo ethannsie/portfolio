@@ -65,6 +65,151 @@ function getOcct() {
   return occtPromise;
 }
 
+/* ---------- joint articulation ----------
+   STEP carries no motion data, so a model's joints (axis, pivot,
+   limits) are exported separately by scripts/fusion/export_joints_for_web.py
+   into a sidecar JSON discovered by naming convention next to the
+   STEP file. If it's missing or fails to load, the viewer behaves
+   exactly as it does for any other model — this is purely additive.
+   See scripts/fusion/README.md for the schema this reads. */
+function jointsUrlFor(stepUrl) {
+  return stepUrl.replace(/\.(step|stp)(\?.*)?$/i, ".joints.json$2");
+}
+
+async function fetchJoints(stepUrl) {
+  try {
+    const res = await fetch(jointsUrlFor(stepUrl));
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data || !Array.isArray(data.joints)) return null;
+    return data;
+  } catch (e) {
+    console.warn("CAD joints: couldn't load/parse joints file", e);
+    return null;
+  }
+}
+
+/* Matches joint definitions against this model's parts (by the same
+   name used for the BOM/hover-highlight) and, for every joint that
+   matches, renders a slider + play/pause row into the .cad-joints
+   placeholder already present in buildViewer's toolbar markup.
+   Returns the list of live joint entries so buildViewer's render loop
+   can advance whichever ones are auto-playing.
+
+   Rotation math: mesh vertices are baked into world space at parse
+   time (every part's Group starts at position (0,0,0), quaternion
+   identity — see buildNode/applyExplode), so rigidly rotating a part
+   by angle `theta` about world axis `axis` through world pivot `pivot`
+   means solving `quaternion·v + position = pivot + R(v−pivot)` for all
+   v, which gives quaternion = R and position = pivot − R·pivot. This
+   exact formula is unit-tested in isolation (see the plan/commit
+   message for the verification script) before ever touching a real
+   STEP file. */
+function setupJoints(container, joints, parts, explodeSlider, applyExplode) {
+  const jointsEl = container.querySelector(".cad-joints");
+  if (!jointsEl || !joints || !Array.isArray(joints.joints)) return [];
+
+  function findPart(name) {
+    const exact = parts.find((p) => partLabel(p) === name);
+    if (exact) return exact;
+    const norm = String(name).trim().toLowerCase();
+    return parts.find((p) => partLabel(p).trim().toLowerCase() === norm);
+  }
+
+  const entries = [];
+  for (const def of joints.joints || []) {
+    if (def.type !== "revolute" && def.type !== "slider") {
+      console.warn(`CAD joints: skipping "${def.name}" — unsupported type "${def.type}"`);
+      continue;
+    }
+    if (!Array.isArray(def.axis) || def.axis.length !== 3) {
+      console.warn(`CAD joints: skipping "${def.name}" — missing/invalid axis`);
+      continue;
+    }
+    if (def.type === "revolute" && (!Array.isArray(def.origin) || def.origin.length !== 3)) {
+      console.warn(`CAD joints: skipping "${def.name}" — revolute joint missing origin`);
+      continue;
+    }
+    const wanted = Array.isArray(def.components) ? def.components : [];
+    const matched = wanted.map(findPart).filter(Boolean);
+    if (!matched.length) {
+      console.warn(
+        `CAD joints: no part matched for joint "${def.name}" (looked for ${JSON.stringify(wanted)}); ` +
+        `parts in this model: ${JSON.stringify(parts.map(partLabel))}`
+      );
+      continue;
+    }
+
+    const axis = new THREE.Vector3(def.axis[0], def.axis[1], def.axis[2]).normalize();
+    const pivot = def.type === "revolute" ? new THREE.Vector3(def.origin[0], def.origin[1], def.origin[2]) : null;
+    const min = Number.isFinite(def.min) ? def.min : 0;
+    const max = Number.isFinite(def.max) ? def.max : (def.type === "revolute" ? 360 : 100);
+    const value = Math.min(max, Math.max(min, Number.isFinite(def.value) ? def.value : min));
+    entries.push({ def, parts: matched, axis, pivot, min, max, value, playing: false, playDir: 1 });
+  }
+
+  if (!entries.length) return [];
+
+  jointsEl.hidden = false;
+  jointsEl.innerHTML = entries.map((entry, i) => `
+    <div class="cad-toolbar-row cad-joint-row">
+      <button type="button" class="cad-joint-play" data-i="${i}" aria-label="Play ${esc(entry.def.name || "joint")}"><i class="ti ti-player-play"></i></button>
+      <label class="cad-joint-label mono" title="${esc(entry.def.name || "")}">${esc(entry.def.name || `Joint ${i + 1}`)}</label>
+      <input type="range" class="cad-joint-slider" data-i="${i}" min="${entry.min}" max="${entry.max}" step="0.1" value="${entry.value}">
+      <span class="cad-joint-value mono" data-i="${i}"></span>
+    </div>`).join("");
+
+  function applyPose(entry, value) {
+    for (const part of entry.parts) {
+      if (entry.def.type === "revolute") {
+        const q = new THREE.Quaternion().setFromAxisAngle(entry.axis, THREE.MathUtils.degToRad(value));
+        part.obj.quaternion.copy(q);
+        part.base = entry.pivot.clone().sub(entry.pivot.clone().applyQuaternion(q));
+      } else {
+        part.obj.quaternion.identity();
+        part.base = entry.axis.clone().multiplyScalar(value);
+      }
+    }
+  }
+
+  entries.forEach((entry, i) => {
+    const unit = entry.def.type === "revolute" ? "°" : "mm";
+    entry.sliderEl = jointsEl.querySelector(`.cad-joint-slider[data-i="${i}"]`);
+    entry.valueEl = jointsEl.querySelector(`.cad-joint-value[data-i="${i}"]`);
+    entry.playBtn = jointsEl.querySelector(`.cad-joint-play[data-i="${i}"]`);
+
+    entry.set = (value, { stopPlaying = false } = {}) => {
+      entry.value = Math.min(entry.max, Math.max(entry.min, value));
+      applyPose(entry, entry.value);
+      applyExplode(parseFloat(explodeSlider.value));
+      entry.sliderEl.value = entry.value;
+      entry.valueEl.textContent = `${formatNumber(entry.value)}${unit}`;
+      if (stopPlaying && entry.playing) {
+        entry.playing = false;
+        entry.playBtn.querySelector("i").className = "ti ti-player-play";
+      }
+    };
+
+    entry.advance = (dt) => {
+      const speed = (entry.max - entry.min) / 2.5; // full sweep in ~2.5s
+      let next = entry.value + entry.playDir * speed * dt;
+      if (next >= entry.max) { next = entry.max; entry.playDir = -1; }
+      if (next <= entry.min) { next = entry.min; entry.playDir = 1; }
+      entry.set(next);
+    };
+
+    entry.sliderEl.addEventListener("input", () => entry.set(parseFloat(entry.sliderEl.value), { stopPlaying: true }));
+    entry.playBtn.addEventListener("click", () => {
+      entry.playing = !entry.playing;
+      entry.playBtn.querySelector("i").className = entry.playing ? "ti ti-player-pause" : "ti ti-player-play";
+    });
+
+    entry.set(entry.value); // establish initial pose (Fusion's value at export time)
+  });
+
+  return entries;
+}
+
 function buildNode(node, meshes, materials) {
   const obj = new THREE.Group();
   obj.name = node.name || "";
@@ -109,6 +254,10 @@ function collectPartGroups(root) {
     if (obj.children.some((c) => c.isMesh)) groups.push(obj);
   });
   return groups.length ? groups : [root];
+}
+
+function partLabel(part) {
+  return part.obj.name && part.obj.name.trim() ? part.obj.name.trim() : "unnamed part";
 }
 
 function meshVolumeAndArea(geometry) {
@@ -196,10 +345,11 @@ async function mountSlot(slotEl, url, specs, label) {
     return "error";
   }
 
-  return buildViewer(slotEl, url, specs, result, label);
+  const joints = await fetchJoints(url);
+  return buildViewer(slotEl, url, specs, result, label, joints);
 }
 
-function buildViewer(container, url, specs, result, label) {
+function buildViewer(container, url, specs, result, label, joints) {
   container.innerHTML = `
     <div class="cad-layout">
       <div class="cad-main">
@@ -215,6 +365,7 @@ function buildViewer(container, url, specs, result, label) {
             <label class="cad-toggle mono"><input type="checkbox" class="cad-cutaway-toggle"> cutaway</label>
             <input type="range" class="cad-cutaway-slider" min="0" max="1" step="0.001" value="0.5" disabled>
           </div>
+          <div class="cad-joints" hidden></div>
         </div>
         <div class="cad-canvas-wrap">
           <canvas class="cad-canvas"></canvas>
@@ -296,10 +447,6 @@ function buildViewer(container, url, specs, result, label) {
     for (const part of parts) {
       part.obj.position.copy(part.base).addScaledVector(part.dir, t * explodeScale);
     }
-  }
-
-  function partLabel(part) {
-    return part.obj.name && part.obj.name.trim() ? part.obj.name.trim() : "unnamed part";
   }
 
   function setHighlighted(name) {
@@ -389,6 +536,8 @@ function buildViewer(container, url, specs, result, label) {
 
   model.traverse((o) => { if (o.isMesh) allMeshes.push(o); });
 
+  const jointEntries = setupJoints(container, joints, parts, slider, applyExplode);
+
   /* physical properties, computed from the tessellated mesh itself
      (occt-import-js reports in millimeters by default) */
   let totalVolume = 0, totalArea = 0;
@@ -428,7 +577,14 @@ function buildViewer(container, url, specs, result, label) {
   applyExplode(0);
   resize();
 
+  let lastFrameTime = performance.now();
   function loop() {
+    const now = performance.now();
+    const dt = (now - lastFrameTime) / 1000;
+    lastFrameTime = now;
+    for (const entry of jointEntries) {
+      if (entry.playing) entry.advance(dt);
+    }
     controls.update();
     renderer.render(scene, camera);
   }

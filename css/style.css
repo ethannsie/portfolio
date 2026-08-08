@@ -518,6 +518,23 @@ html.lightbox-lock, html.lightbox-lock body { overflow: hidden; }
 }
 .cad-reset:hover { color: var(--ink); border-color: var(--ink); }
 
+/* ---- joint articulation (see setupJoints() in viewer.js) ---- */
+.cad-joints[hidden] { display: none; }
+.cad-joint-row { gap: 10px; }
+.cad-joint-play {
+  flex: none; width: 22px; height: 22px; border-radius: 50%;
+  border: 1px solid var(--line-strong); background: transparent; color: var(--ink);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  font-size: 10px; transition: background .15s var(--ease), border-color .15s var(--ease);
+}
+.cad-joint-play:hover { background: var(--tag-bg); border-color: var(--ink); }
+.cad-joint-label {
+  flex: 0 0 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  letter-spacing: .02em;
+}
+.cad-joint-slider { flex: 1; accent-color: var(--blue-bright); }
+.cad-joint-value { flex: none; width: 54px; text-align: right; color: var(--faint); }
+
 .cad-canvas-wrap { position: relative; aspect-ratio: 16 / 9; max-height: 380px; width: 100%; }
 .cad-canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 .cad-tooltip {
