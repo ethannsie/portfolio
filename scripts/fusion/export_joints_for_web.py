@@ -45,8 +45,11 @@ ASSUMPTIONS THIS SCRIPT MAKES, WORTH KNOWING ABOUT:
   3. For an As-built Joint, there's no single `.origin` property the
      way a regular Joint has — this script falls back to reading the
      pivot off the geometry the joint was defined from. If that lookup
-     fails for some reason, the joint is skipped with an explicit
-     reason rather than guessing a pivot that might be badly wrong.
+     fails, the joint is skipped rather than guessing a pivot that
+     might be badly wrong — but the skip reason includes what the
+     lookup actually found (which properties existed, what type they
+     were), so a real failure can be diagnosed and fixed here without
+     needing to re-run this script inside Fusion again first.
 """
 
 import adsk.core
@@ -65,42 +68,105 @@ def joint_type_name(joint_motion):
     return raw.split("::")[-1] if raw else "unknown"
 
 
+def _point_from_entity(entity):
+    """Resolve a Point3D from a geometry entity (vertex, sketch point,
+    construction point, or face) — the kind of thing a JointGeometry's
+    primaryEntity commonly is."""
+    if entity is None:
+        return None
+    for attr in ("geometry", "worldGeometry"):
+        g = None
+        try:
+            g = getattr(entity, attr)
+        except Exception:
+            continue
+        if g is None:
+            continue
+        try:
+            return adsk.core.Point3D.create(g.x, g.y, g.z)
+        except Exception:
+            pass
+        try:
+            o = g.origin
+            if o:
+                return o
+        except Exception:
+            pass
+    try:
+        p = entity.pointOnFace
+        if p:
+            return p
+    except Exception:
+        pass
+    return None
+
+
 def get_joint_origin(joint):
-    """Best-effort world-space pivot point (Point3D) for a joint. Works
-    directly for a regular Joint (.origin). An AsBuiltJoint has no such
-    property — its pivot has to be read off whichever geometry/origin
-    object the joint was actually defined from, so this tries a few
-    reasonable paths and gives up (returns None) rather than guessing,
-    since a wrong pivot is worse than a skipped joint."""
+    """Best-effort world-space pivot point (Point3D) for a joint, plus
+    a short debug string describing what was actually found when the
+    lookup fails — so a failure is diagnosable straight from the Text
+    Commands report instead of costing another round trip through
+    Fusion to add logging.
+
+    Works directly for a regular Joint (.origin). An As-built Joint has
+    no such property — as-built joints are usually created by selecting
+    whole occurrences rather than reference geometry, so this tries
+    several reasonable paths and gives up (returns None) rather than
+    guessing, since a wrong pivot is worse than a skipped joint.
+
+    Returns (origin_or_None, debug_string_or_None).
+    """
     try:
         origin = joint.origin
         if origin:
-            return origin
+            return origin, None
     except Exception:
         pass
 
+    seen = []
     for attr in ("geometryOrOriginOne", "geometryOrOriginTwo"):
         geo = None
         try:
             geo = getattr(joint, attr)
-        except Exception:
+        except Exception as e:
+            seen.append("{}: raised {}".format(attr, type(e).__name__))
             continue
         if geo is None:
+            seen.append("{}: None".format(attr))
             continue
+
+        try:
+            geo_type = geo.objectType.split("::")[-1]
+        except Exception:
+            geo_type = type(geo).__name__
+        seen.append("{}: {}".format(attr, geo_type))
+
         try:
             origin = geo.origin
             if origin:
-                return origin
+                return origin, None
         except Exception:
             pass
         try:
             origin = geo.geometry.origin
             if origin:
-                return origin
+                return origin, None
+        except Exception:
+            pass
+        try:
+            entity = geo.primaryEntity
+            origin = _point_from_entity(entity)
+            if origin:
+                return origin, None
+            if entity is not None:
+                try:
+                    seen[-1] += " (primaryEntity: {})".format(entity.objectType.split("::")[-1])
+                except Exception:
+                    pass
         except Exception:
             pass
 
-    return None
+    return None, ("; ".join(seen) if seen else "no geometryOrOrigin properties found")
 
 
 def export_revolute(origin, motion):
@@ -207,13 +273,12 @@ def run(context):
             slider = adsk.fusion.SliderJointMotion.cast(motion)
 
             if revolute:
-                origin = get_joint_origin(joint)
+                origin, debug_info = get_joint_origin(joint)
                 if origin is None:
-                    skipped.append({
-                        "name": name,
-                        "reason": "couldn't determine the pivot point for this {} — "
-                                  "see assumption 3 at the top of the script".format(source_label),
-                    })
+                    reason = "couldn't determine the pivot point for this {}".format(source_label)
+                    if debug_info:
+                        reason += " (found: {})".format(debug_info)
+                    skipped.append({"name": name, "reason": reason})
                     continue
                 data = export_revolute(origin, revolute)
             elif slider:
