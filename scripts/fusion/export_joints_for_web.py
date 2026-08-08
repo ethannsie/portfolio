@@ -37,7 +37,8 @@ ASSUMPTIONS THIS SCRIPT MAKES, WORTH KNOWING ABOUT:
      single-level assembly.
   2. For each joint, whichever component you selected FIRST when
      creating it (Fusion calls this `occurrenceOne`) is treated as the
-     part that moves. This is Fusion's own convention, but if a joint
+     part that moves — falling back to `occurrenceTwo` if that raises
+     an error, which happens on some As-built Joints. If a joint
      visibly drives the wrong body on the site, the fix is a one-line
      edit to the generated JSON's "components" list for that joint —
      no need to re-run this script.
@@ -137,6 +138,23 @@ def export_slider(motion):
     }
 
 
+def get_moving_occurrence(joint):
+    """Best-effort "moving side" occurrence for a joint. .occurrenceOne
+    is Fusion's own convention for this, but on at least some As-built
+    Joints it raises an internal API error instead of returning None
+    (seen in practice, not just theoretical) — so this tries it, falls
+    back to .occurrenceTwo, and gives up (returns None) rather than
+    letting that error kill the whole export run."""
+    for attr in ("occurrenceOne", "occurrenceTwo"):
+        try:
+            occ = getattr(joint, attr)
+        except Exception:
+            continue
+        if occ:
+            return occ
+    return None
+
+
 def count_motion_links(root):
     """Returns the number of Motion Links on the root component, or
     None if that collection couldn't be read (older API version, or
@@ -204,9 +222,9 @@ def run(context):
                 skipped.append({"name": name, "reason": "unsupported joint type: " + joint_type_name(motion)})
                 continue
 
-            mover = joint.occurrenceOne
+            mover = get_moving_occurrence(joint)
             if not mover:
-                skipped.append({"name": name, "reason": "couldn't determine which occurrence moves (occurrenceOne is empty)"})
+                skipped.append({"name": name, "reason": "couldn't determine which occurrence moves (occurrenceOne/occurrenceTwo both empty or inaccessible)"})
                 continue
 
             data["name"] = name
